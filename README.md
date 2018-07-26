@@ -1,2 +1,2 @@
 # XPoint_NoRoot
-XPoint 非Root 简版
+XPoint 非Root版 （简版）
