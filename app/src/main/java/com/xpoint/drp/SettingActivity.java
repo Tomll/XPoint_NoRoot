@@ -11,7 +11,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.CompoundButton;
 import android.widget.Switch;
@@ -63,23 +62,6 @@ public class SettingActivity extends AppCompatActivity {
         //API >=23，需要在manifest中申请权限，并在每次需要用到权限的时候检查是否已有该权限，因为用户随时可以取消掉。
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (!Settings.canDrawOverlays(getApplicationContext())) {
-/*                new AlertDialog.Builder(SettingActivity.this)
-                        .setCancelable(false)
-                        .setCancelable(false)
-                        .setTitle("权限请求").setMessage("请允许XPoint在其他应用的上层显示")
-                        .setPositiveButton("是", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
-                                startActivityForResult(intent, 18);
-                            }
-                        })
-                        .setNegativeButton("否", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                finish();
-                            }
-                        }).show();*/
                 showAlertDialogDrawOverly();//引导开启悬浮窗权限对话框
             } else {
                 checkAccessibilityServicePermission();
@@ -91,20 +73,6 @@ public class SettingActivity extends AppCompatActivity {
 
     public void checkAccessibilityServicePermission() {
         if (!isStartAccessibilityService(getApplicationContext(), getPackageName())) {
-/*            new AlertDialog.Builder(SettingActivity.this)
-                    .setTitle("权限请求").setMessage("请在稍后弹出的界面中，开启XPoint悬浮球服务")
-                    .setPositiveButton("是", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
-                        }
-                    })
-                    .setNegativeButton("否", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            finish();
-                        }
-                    }).show();*/
             showAlertDialogAccessibilityService();//引导开启无障碍服务对话框
         }
     }
@@ -119,9 +87,7 @@ public class SettingActivity extends AppCompatActivity {
         AccessibilityManager am = (AccessibilityManager) context.getSystemService(Context.ACCESSIBILITY_SERVICE);
         List<AccessibilityServiceInfo> serviceInfos = am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_GENERIC);
         for (AccessibilityServiceInfo info : serviceInfos) {
-
             String id = info.getId();
-            Log.d("SettingActivity", id);
             if (id.contains(name)) {
                 return true;
             }

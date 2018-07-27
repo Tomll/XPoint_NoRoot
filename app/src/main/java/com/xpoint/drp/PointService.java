@@ -6,10 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Message;
-import android.os.RemoteException;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -18,9 +15,6 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 
-import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -75,7 +69,7 @@ public class PointService extends AccessibilityService {
     public void onCreate() {
         super.onCreate();
         //LeakCanary.install(getApplication());//初始化内存泄露检测
-        Log.d("PointService", "onCreate");
+        //Log.d("PointService", "onCreate");
         mContext = getApplicationContext();
         //以下逻辑可以实现：将PointService设置为前台服务，同时可以去除通知栏的通知 （真假服务的ID必须相同）
         //1.将真的服务设置为前台服务
@@ -86,7 +80,7 @@ public class PointService extends AccessibilityService {
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d("PointService", "onStartCommand");
+        //Log.d("PointService", "onStartCommand");
         //1、初始化params参数
         initWindowParams();
         //2、创建“小圆点”ImageView对象
@@ -104,7 +98,7 @@ public class PointService extends AccessibilityService {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.d("PointService", "onDestroy");
+        //Log.d("PointService", "onDestroy");
         windowManager.removeView(pointView);
         stopForeground(true); //删除前台服务的通知
     }
@@ -211,7 +205,8 @@ public class PointService extends AccessibilityService {
                             performGlobalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS);
                         } else if (event.getRawY() - startImageY <= -100 /*&& Math.abs(event.getRawX() - startImageX) < 80*/) {
                             //Toast.makeText(mContext, "上拉", Toast.LENGTH_SHORT).show();
-                            openRecent();
+                            //openRecent();
+                            performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS);
                         } else if (event.getRawX() - startImageX >= 100 /*&& Math.abs(event.getRawY() - startImageY) < 80*/) {
                             //Toast.makeText(mContext, "右拉", Toast.LENGTH_SHORT).show();
                         } else if (event.getRawX() - startImageX <= -100 /*&& Math.abs(event.getRawY() - startImageY) < 80*/) {
@@ -258,7 +253,7 @@ public class PointService extends AccessibilityService {
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
             //Toast.makeText(mContext, "拖动" + e2.getAction(), Toast.LENGTH_SHORT).show();
-            Log.d("MyGestureListener", "distanceX:" + distanceX);
+            //Log.d("MyGestureListener", "distanceX:" + distanceX);
             updateViewLayout((int) (e2.getRawX() - pointView.getWidth() / 2),
                     (int) (e2.getRawY() - pointView.getHeight() / 2));
             return false;
@@ -282,7 +277,8 @@ public class PointService extends AccessibilityService {
         @Override
         public boolean onDoubleTap(MotionEvent e) {
             //Toast.makeText(mContext, "双击" + e.getAction(), Toast.LENGTH_SHORT).show();
-            goToLauncher();//去Launcher主界面
+            //goToLauncher();//去Launcher主界面，速度比performGlobalAction慢20多毫秒，所以暂时不用此方法
+            performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
             return false;
         }
 
@@ -297,7 +293,7 @@ public class PointService extends AccessibilityService {
         @Override
         public boolean onSingleTapConfirmed(MotionEvent e) {
             //Toast.makeText(mContext, "单击" + e.getAction(), Toast.LENGTH_SHORT).show();
-            //exeShellCmd(" input  keyevent 4 ");//shell命令执行返回键，就是 速度太慢
+            //exeShellCmd(" input  keyevent 4 ");//shell命令执行返回键，就是 速度太慢了，舍弃此方法
             performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
             return false;
         }
@@ -305,9 +301,9 @@ public class PointService extends AccessibilityService {
 
 
     /**
-     * 反射打开最近任务列表
+     * 反射打开最近任务列表(比performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS) 还是慢了 1 毫秒，所以暂时不用反射了)
      */
-    public void openRecent() {
+    /*public void openRecent() {
         Class serviceManagerClass;
         try {
             serviceManagerClass = Class.forName("android.os.ServiceManager");
@@ -336,23 +332,24 @@ public class PointService extends AccessibilityService {
         } catch (RemoteException e) {
             e.printStackTrace();
         }
-    }
+    }*/
+
 
     /**
-     * 去Launcher主界面
+     * 去Launcher主界面（速度比performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME)还是慢了20多毫秒，所以暂时不用此方法）
      */
-    public void goToLauncher() {
+    /*public void goToLauncher() {
         Intent intent = new Intent(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_HOME);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
-    }
+    }*/
 
-    private OutputStream os;
 
     /**
-     * 执行shell命令（前提是应用获取了root权限）
+     * 执行shell命令（前提是应用获取了root权限），而且通过shell命令执行输入事件，反应极其的慢，所以暂时不用shell命令方式了
      */
+    /*private OutputStream os;
     public final void exeShellCmd(String cmd) {
         try {
             if (os == null) {
@@ -366,7 +363,6 @@ public class PointService extends AccessibilityService {
         } catch (Exception e1) {
             e1.printStackTrace();
         }
-    }
-
+    }*/
 
 }
