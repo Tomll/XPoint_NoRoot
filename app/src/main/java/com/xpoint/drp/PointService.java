@@ -113,8 +113,8 @@ public class PointService extends AccessibilityService {
         params.format = PixelFormat.TRANSLUCENT;
         params.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
         params.gravity = Gravity.START | Gravity.TOP;
-        params.x = 750;
-        params.y = 1450;
+        params.x = 1040;
+        params.y = 785;
         params.width = 100;
         params.height = 100;
     }
