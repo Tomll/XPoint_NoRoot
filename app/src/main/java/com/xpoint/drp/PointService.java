@@ -1,12 +1,18 @@
 package com.xpoint.drp;
 
 import android.accessibilityservice.AccessibilityService;
+import android.annotation.TargetApi;
+import android.app.ActivityManager;
 import android.app.Notification;
+import android.app.usage.UsageStats;
+import android.app.usage.UsageStatsManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -14,10 +20,12 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
-import android.widget.Toast;
 
+import java.util.List;
+import java.util.SortedMap;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.TreeMap;
 
 /**
  * Created by dongrp on 2017/2/20.
@@ -214,6 +222,8 @@ public class PointService extends AccessibilityService {
                             //Toast.makeText(mContext, "右拉", Toast.LENGTH_SHORT).show();
                         } else if (event.getRawX() - startTouchX <= -100 /*&& Math.abs(event.getRawY() - startTouchY) < 80*/) {
                             //Toast.makeText(mContext, "左拉", Toast.LENGTH_SHORT).show();
+//                            moveSecondRecentAppToFront();
+                            moveSecondRecentAppToFront();
                         }
                         updateViewLayout(startImageX, startImageY);//操作完成之后，将XPoint还原到初始坐标点位置
                     }
@@ -300,6 +310,58 @@ public class PointService extends AccessibilityService {
             performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
             return false;
         }
+    }
+
+
+    //将最近任务列表中的第2个应用设置到前台
+    private void moveSecondRecentAppToFront() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {//5.0之后通过USAGE_STATS_SERVICE获取应用列表
+            UsageStatsManager usageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
+            long time = System.currentTimeMillis();
+            // 查询最后十秒钟使用应用统计数据
+            List<UsageStats> usageStatsList = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, time - 10 * 1000, time);
+            // 以最后使用时间为标准进行排序
+            if (usageStatsList != null) {
+                SortedMap<Long, UsageStats> sortedMap = new TreeMap<>();
+                for (UsageStats usageStats : usageStatsList) {
+                    sortedMap.put(usageStats.getLastTimeUsed(), usageStats);
+                }
+
+                if (sortedMap.size() != 0 && sortedMap.size() >= 4) {
+                    String secondShowAppPackageName = getSecondShowAppPackageName(sortedMap);
+                    Log.d("dongrp", "secondShowAppPackageName:------" + secondShowAppPackageName);
+                    Intent intent = getPackageManager().getLaunchIntentForPackage(secondShowAppPackageName);
+                    if (null != intent) {
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                    } else {
+                        Log.d("dongrp", "目标包名：" + secondShowAppPackageName + " 无法创建启动意图");
+                    }
+                }
+            }
+        } else {//5.0之前通过getRunningTasks()获取应用列表
+            ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+            List<ActivityManager.RunningTaskInfo> runningTasks = am.getRunningTasks(2);//获取最近的两个Task
+            if (null != runningTasks && runningTasks.size() == 2) {
+                ActivityManager.RunningTaskInfo runningTaskInfo = runningTasks.get(1);//获取最近任务列表的第2个应用
+                if (null != runningTaskInfo) {
+                    am.moveTaskToFront(runningTaskInfo.id, ActivityManager.MOVE_TASK_WITH_HOME);
+                }
+            }
+        }
+    }
+
+
+    //获取最近使用的 应用记录集合中的 第二个应用包名
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public String getSecondShowAppPackageName(SortedMap<Long, UsageStats> sortedMap) {
+        sortedMap.remove(sortedMap.lastKey());//将当前最顶部显示的应用记录移除
+        //移除顶部后:继续判断顶部包名，如果是以下两个应用，则继续移除顶部
+        while (sortedMap.get(sortedMap.lastKey()).getPackageName().equals("com.android.systemui")
+                || sortedMap.get(sortedMap.lastKey()).getPackageName().equals("com.yulong.android.launcher3")) {
+            sortedMap.remove(sortedMap.lastKey());//继续移除顶部
+        }
+        return sortedMap.get(sortedMap.lastKey()).getPackageName();//然后再get最顶部的应用记录
     }
 
 
