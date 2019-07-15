@@ -14,6 +14,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
+import android.widget.Toast;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -170,9 +171,11 @@ public class PointService extends AccessibilityService {
                     }
                     handler.sendEmptyMessage(0);
                     downTime = System.currentTimeMillis();
+                    //先记录下XPoint点在屏幕的展示坐标位置，以便于操作完之后还原XPoint点位置
                     pointView.getLocationOnScreen(location);
                     startImageX = location[0];
                     startImageY = location[1];
+                    //记录初始的触摸坐标点位置，以便于MOVE的时候做各种距离逻辑的判断
                     startTouchX = (int) event.getRawX();
                     startTouchY = (int) event.getRawY();
                     break;
@@ -199,20 +202,20 @@ public class PointService extends AccessibilityService {
                     if (longPress) { //如果是长按：则之前在ACTION_MOVE中执行的 updateViewLayout()生效，并将longPress归为初始状态false
                         longPress = false;
                     } else {//如果不是长按：则之前的 updateViewLayout()无效，并将imageView归回原来的位置
-                        if (event.getRawY() - startImageY >= 100 /*&& Math.abs(event.getRawX() - startImageX) < 80*/) {
+                        if (event.getRawY() - startTouchY >= 100 /*&& Math.abs(event.getRawX() - startTouchX) < 80*/) {
                             //Toast.makeText(mContext, "下拉", Toast.LENGTH_SHORT).show();
                             //exeShellCmd("input swipe 10  0  10  500 ");//shell屏幕滑动命令
                             performGlobalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS);
-                        } else if (event.getRawY() - startImageY <= -100 /*&& Math.abs(event.getRawX() - startImageX) < 80*/) {
+                        } else if (event.getRawY() - startTouchY <= -100 /*&& Math.abs(event.getRawX() - startTouchX) < 80*/) {
                             //Toast.makeText(mContext, "上拉", Toast.LENGTH_SHORT).show();
                             //openRecent();
                             performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS);
-                        } else if (event.getRawX() - startImageX >= 100 /*&& Math.abs(event.getRawY() - startImageY) < 80*/) {
+                        } else if (event.getRawX() - startTouchX >= 100 /*&& Math.abs(event.getRawY() - startTouchY) < 80*/) {
                             //Toast.makeText(mContext, "右拉", Toast.LENGTH_SHORT).show();
-                        } else if (event.getRawX() - startImageX <= -100 /*&& Math.abs(event.getRawY() - startImageY) < 80*/) {
+                        } else if (event.getRawX() - startTouchX <= -100 /*&& Math.abs(event.getRawY() - startTouchY) < 80*/) {
                             //Toast.makeText(mContext, "左拉", Toast.LENGTH_SHORT).show();
                         }
-                        updateViewLayout(startImageX, startImageY);
+                        updateViewLayout(startImageX, startImageY);//操作完成之后，将XPoint还原到初始坐标点位置
                     }
                     break;
             }
