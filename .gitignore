@@ -1,4 +1,4 @@
-*.iml
+﻿*.iml
 .gradle
 /local.properties
 /.idea/libraries
@@ -31,7 +31,7 @@ Branch: Tomll-patch-1 Find file Copy path gitignore/Android.gitignore
 RawBlameHistory     
 67 lines (51 sloc)  1.01 KB
 # Built application files
-*.apk
+#*.apk
 *.ap_
 
 # Files for the ART/Dalvik VM
