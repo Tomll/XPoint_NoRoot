@@ -86,14 +86,14 @@ public class SettingActivity extends AppCompatActivity {
                 showAlertDialogDrawOverly();//引导开启悬浮窗权限对话框
             } else if (!isAccessibilityServiceGranted()) {
                 showAlertDialogAccessibilityService();//引导开启无障碍服务对话框
-            } else if (!isUsageGranted()) {
+            }/* else if (!isUsageGranted()) {
                 showAlertDialogUsageAccess();//引导开启“查看使用情况”权限对话框
-            }
+            }*/
         } else if (!isAccessibilityServiceGranted()) {
             showAlertDialogAccessibilityService();//引导开启无障碍服务对话框
-        } else if (!isUsageGranted()) {
+        }/* else if (!isUsageGranted()) {
             showAlertDialogUsageAccess();//引导开启“查看使用情况”权限对话框
-        }
+        }*/
     }
 
 

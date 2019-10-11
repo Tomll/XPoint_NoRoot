@@ -48,9 +48,9 @@ public class PointService extends AccessibilityService {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             if (msg.what == 0 && null != pointView) {
-                pointView.setAlpha(0.5f);
+                pointView.setAlpha(0.8f);
             } else if (msg.what == 1 && null != pointView) {
-                pointView.setAlpha(0.3f);
+                pointView.setAlpha(0.5f);
             }
         }
     };
@@ -94,7 +94,7 @@ public class PointService extends AccessibilityService {
         initWindowParams();
         //2、创建“小圆点”ImageView对象
         pointView = LayoutInflater.from(mContext).inflate(R.layout.layout_window, null, false);
-        pointView.setAlpha(0.6f);
+//        pointView.setAlpha(0.6f);
         //3、添加“小圆点”到window中
         windowManager.addView(pointView, params);
         //创建手势监听对象，在imageView的onTouch()方法中:return gestureDetector.onTouchEvent(event)
@@ -124,8 +124,8 @@ public class PointService extends AccessibilityService {
         params.gravity = Gravity.START | Gravity.TOP;
         params.x = 1040;
         params.y = 785;
-        params.width = 100;
-        params.height = 100;
+        params.width = 120;
+        params.height = 120;
     }
 
     /**
@@ -223,7 +223,7 @@ public class PointService extends AccessibilityService {
                         } else if (event.getRawX() - startTouchX <= -100 /*&& Math.abs(event.getRawY() - startTouchY) < 80*/) {
                             //Toast.makeText(mContext, "左拉", Toast.LENGTH_SHORT).show();
 //                            moveSecondRecentAppToFront();
-                            moveSecondRecentAppToFront();
+//                            moveSecondRecentAppToFront();
                         }
                         updateViewLayout(startImageX, startImageY);//操作完成之后，将XPoint还原到初始坐标点位置
                     }
