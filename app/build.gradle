@@ -6,7 +6,9 @@ android {
     defaultConfig {
         applicationId "com.xpoint.drp"
         minSdkVersion 19
-        targetSdkVersion 29
+        //（我也感觉不可思议，信不信由你，加上以下注释后，签名打包时的错误：Google Play requires that apps target API level 26 or higher就不再出现了）
+        //noinspection ExpiredTargetSdkVersion
+        targetSdkVersion 23
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
