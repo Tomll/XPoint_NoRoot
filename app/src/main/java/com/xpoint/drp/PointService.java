@@ -124,8 +124,8 @@ public class PointService extends AccessibilityService {
         params.gravity = Gravity.START | Gravity.TOP;
         params.x = 1040;
         params.y = 785;
-        params.width = 120;
-        params.height = 120;
+        params.width = 100;
+        params.height = 100;
     }
 
     /**
@@ -217,7 +217,8 @@ public class PointService extends AccessibilityService {
                         } else if (event.getRawY() - startTouchY <= -100 /*&& Math.abs(event.getRawX() - startTouchX) < 80*/) {
                             //Toast.makeText(mContext, "上拉", Toast.LENGTH_SHORT).show();
                             //openRecent();
-                            performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS);
+                            //performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS);
+                            performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
                         } else if (event.getRawX() - startTouchX >= 100 /*&& Math.abs(event.getRawY() - startTouchY) < 80*/) {
                             //Toast.makeText(mContext, "右拉", Toast.LENGTH_SHORT).show();
                         } else if (event.getRawX() - startTouchX <= -100 /*&& Math.abs(event.getRawY() - startTouchY) < 80*/) {
@@ -259,6 +260,7 @@ public class PointService extends AccessibilityService {
         @Override
         public boolean onSingleTapUp(MotionEvent e) {
             //Toast.makeText(mContext, "抬起" + e.getAction(), Toast.LENGTH_SHORT).show();
+            performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
             return false;
         }
 
@@ -291,7 +293,6 @@ public class PointService extends AccessibilityService {
         public boolean onDoubleTap(MotionEvent e) {
             //Toast.makeText(mContext, "双击" + e.getAction(), Toast.LENGTH_SHORT).show();
             //goToLauncher();//去Launcher主界面，速度比performGlobalAction慢20多毫秒，所以暂时不用此方法
-            performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
             return false;
         }
 
@@ -307,7 +308,6 @@ public class PointService extends AccessibilityService {
         public boolean onSingleTapConfirmed(MotionEvent e) {
             //Toast.makeText(mContext, "单击" + e.getAction(), Toast.LENGTH_SHORT).show();
             //exeShellCmd(" input  keyevent 4 ");//shell命令执行返回键，就是 速度太慢了，舍弃此方法
-            performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK);
             return false;
         }
     }
