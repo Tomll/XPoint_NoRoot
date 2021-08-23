@@ -217,8 +217,7 @@ public class PointService extends AccessibilityService {
                         } else if (event.getRawY() - startTouchY <= -100 /*&& Math.abs(event.getRawX() - startTouchX) < 80*/) {
                             //Toast.makeText(mContext, "上拉", Toast.LENGTH_SHORT).show();
                             //openRecent();
-                            //performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS);
-                            performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
+                            performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS);
                         } else if (event.getRawX() - startTouchX >= 100 /*&& Math.abs(event.getRawY() - startTouchY) < 80*/) {
                             //Toast.makeText(mContext, "右拉", Toast.LENGTH_SHORT).show();
                         } else if (event.getRawX() - startTouchX <= -100 /*&& Math.abs(event.getRawY() - startTouchY) < 80*/) {
@@ -293,6 +292,7 @@ public class PointService extends AccessibilityService {
         public boolean onDoubleTap(MotionEvent e) {
             //Toast.makeText(mContext, "双击" + e.getAction(), Toast.LENGTH_SHORT).show();
             //goToLauncher();//去Launcher主界面，速度比performGlobalAction慢20多毫秒，所以暂时不用此方法
+            performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
             return false;
         }
 
