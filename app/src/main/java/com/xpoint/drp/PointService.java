@@ -253,6 +253,7 @@ public class PointService extends AccessibilityService {
         @Override
         public void onShowPress(MotionEvent e) {
             //Toast.makeText(mContext, "短按" + e.getAction(), Toast.LENGTH_SHORT).show();
+            performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
         }
 
         // 抬起，手指离开触摸屏时触发(长按、滚动、滑动时，不会触发这个手势)
@@ -292,7 +293,6 @@ public class PointService extends AccessibilityService {
         public boolean onDoubleTap(MotionEvent e) {
             //Toast.makeText(mContext, "双击" + e.getAction(), Toast.LENGTH_SHORT).show();
             //goToLauncher();//去Launcher主界面，速度比performGlobalAction慢20多毫秒，所以暂时不用此方法
-            performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
             return false;
         }
 
