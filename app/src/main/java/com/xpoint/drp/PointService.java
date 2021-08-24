@@ -160,6 +160,7 @@ public class PointService extends AccessibilityService {
     int startTouchY;
     boolean longPress = false;
     int[] location = new int[2];
+    boolean moving = false;//point是否处于划动状态
 
     /**
      * 自定义的OnTouch监听类(设置给View的)
@@ -227,12 +228,14 @@ public class PointService extends AccessibilityService {
                         }
                         updateViewLayout(startImageX, startImageY);//操作完成之后，将XPoint还原到初始坐标点位置
                     }
+                    moving = false;
                     break;
             }
             //自己处理完长按拖动，剩下的单击、双击、短按滑动手势的判断交由 gestureDetector.onTouchEvent(event)处理
             return gestureDetector.onTouchEvent(event);
         }
     }
+
 
     /**
      * 自定义手势监听类
@@ -253,7 +256,14 @@ public class PointService extends AccessibilityService {
         @Override
         public void onShowPress(MotionEvent e) {
             //Toast.makeText(mContext, "短按" + e.getAction(), Toast.LENGTH_SHORT).show();
-            performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (!moving) {
+                        performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
+                    }
+                }
+            }, 50);
         }
 
         // 抬起，手指离开触摸屏时触发(长按、滚动、滑动时，不会触发这个手势)
@@ -269,6 +279,7 @@ public class PointService extends AccessibilityService {
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
             //Toast.makeText(mContext, "拖动" + e2.getAction(), Toast.LENGTH_SHORT).show();
             //Log.d("MyGestureListener", "distanceX:" + distanceX);
+            moving = true;
             updateViewLayout((int) (e2.getRawX() - pointView.getWidth() / 2),
                     (int) (e2.getRawY() - pointView.getHeight() / 2));
             return false;
