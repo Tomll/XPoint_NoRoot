@@ -4,6 +4,9 @@ import android.accessibilityservice.AccessibilityService;
 import android.annotation.TargetApi;
 import android.app.ActivityManager;
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
 import android.content.Context;
@@ -20,6 +23,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
+
+import androidx.core.app.NotificationCompat;
 
 import java.util.List;
 import java.util.SortedMap;
@@ -58,12 +63,10 @@ public class PointService extends AccessibilityService {
     //下面两个方法是父类AccessibilityService中的方法
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-
     }
 
     @Override
     public void onInterrupt() {
-
     }
 
     /*
@@ -80,27 +83,38 @@ public class PointService extends AccessibilityService {
         //LeakCanary.install(getApplication());//初始化内存泄露检测
         //Log.d("PointService", "onCreate");
         mContext = getApplicationContext();
-        //以下逻辑可以实现：将PointService设置为前台服务，同时可以去除通知栏的通知 （真假服务的ID必须相同）
-        //1.将真的服务设置为前台服务
-        startForeground(798, new Notification());
-        //2.启动假的前台服务,在服务内部执行startForground、stopForground就可以去掉通知了，然后stopSlef()就可以了
-        //Intent fakeIntent = new Intent(this, FakePointService.class);
-        //startService(fakeIntent);
-    }
-
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        //Log.d("PointService", "onStartCommand");
+        //0、启动前台服务
+        startForeground();
         //1、初始化params参数
         initWindowParams();
         //2、创建“小圆点”ImageView对象
         pointView = LayoutInflater.from(mContext).inflate(R.layout.layout_window, null, false);
-//        pointView.setAlpha(0.6f);
+        //pointView.setAlpha(0.6f);
         //3、添加“小圆点”到window中
         windowManager.addView(pointView, params);
         //创建手势监听对象，在imageView的onTouch()方法中:return gestureDetector.onTouchEvent(event)
         gestureDetector = new GestureDetector(this, new MyGestureListener());
         //设置手势监听
         pointView.setOnTouchListener(new MyOnTouchListener());
+    }
+
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        //Log.d("PointService", "onStartCommand");
+        boolean stopSelf = intent.getBooleanExtra("stopSelf", false);
+        //停止服务
+        if (stopSelf && null != pointView && pointView.isAttachedToWindow()) {
+            windowManager.removeView(pointView);
+            stopForeground(true);
+            stopSelf();
+        } else if (!stopSelf && null != pointView && !pointView.isAttachedToWindow()) {
+            startForeground();
+            //添加“小圆点”到window中
+            windowManager.addView(pointView, params);
+            //创建手势监听对象，在imageView的onTouch()方法中:return gestureDetector.onTouchEvent(event)
+            gestureDetector = new GestureDetector(this, new MyGestureListener());
+            //设置手势监听
+            pointView.setOnTouchListener(new MyOnTouchListener());
+        }
         return START_STICKY;
     }
 
@@ -108,9 +122,33 @@ public class PointService extends AccessibilityService {
     public void onDestroy() {
         super.onDestroy();
         //Log.d("PointService", "onDestroy");
-        windowManager.removeView(pointView);
-        stopForeground(true); //删除前台服务的通知
     }
+
+    //启动前台服务
+    private void startForeground() {
+        String CHANNEL_ID = "xpoint_channel_001";
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        //8.0及其以上需要创建推送通道
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "悬浮按钮", NotificationManager.IMPORTANCE_LOW);
+            notificationManager.createNotificationChannel(channel);
+        }
+        //创建PendingIntent
+        Intent notificationIntent = new Intent(this, SettingActivity.class);
+        PendingIntent pendingIntent;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) //31，Android11以上系统
+            pendingIntent = PendingIntent.getActivity(this, 1, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
+        else pendingIntent = PendingIntent.getActivity(this, 1, notificationIntent, PendingIntent.FLAG_ONE_SHOT);
+        // 创建通知
+        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(R.mipmap.app_logo)
+                //.setContentText("点这里，进行设置")
+                .setContentIntent(pendingIntent)
+                .build();
+        //启动前台服务
+        startForeground(6658, notification);
+    }
+
 
     /**
      * 初始化WindowParams
@@ -118,7 +156,10 @@ public class PointService extends AccessibilityService {
     private void initWindowParams() {
         windowManager = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
         params = new WindowManager.LayoutParams();
-        params.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
+        //设置悬浮窗口类型
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            params.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+        else params.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
         params.format = PixelFormat.TRANSLUCENT;
         params.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
         params.gravity = Gravity.START | Gravity.TOP;

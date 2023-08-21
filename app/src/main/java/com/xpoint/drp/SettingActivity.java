@@ -11,11 +11,11 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.CompoundButton;
 import android.widget.Switch;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,16 +36,18 @@ public class SettingActivity extends AppCompatActivity {
 
     public void initView() {
         xSwitch = (Switch) findViewById(R.id.switch0);
-        if (isServiceRunning(this, "com.xpoint.drp.PointService")) {
-            xSwitch.setChecked(true);
-        }
         xSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    startService(new Intent(getApplicationContext(), PointService.class));
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                        startForegroundService(new Intent(getApplicationContext(), PointService.class).putExtra("stopSelf", false));
+                    else startService(new Intent(getApplicationContext(), PointService.class).putExtra("stopSelf", false));
                 } else {
-                    stopService(new Intent(getApplicationContext(), PointService.class));
+                    //通过传参“stopSelf = true”停止前台服务，移除pointView
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                        startForegroundService(new Intent(getApplicationContext(), PointService.class).putExtra("stopSelf", true));
+                    else startService(new Intent(getApplicationContext(), PointService.class).putExtra("stopSelf", true));
                 }
             }
         });
@@ -73,6 +75,9 @@ public class SettingActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (isServiceRunning(this, "com.xpoint.drp.PointService")) {
+            xSwitch.setChecked(true);
+        }
         checkDrawOverlyAndAccessibilityServicePermission();//检查悬浮窗、Usage_Access及AccessibilityService权限
     }
 
@@ -142,7 +147,7 @@ public class SettingActivity extends AppCompatActivity {
                 .setNegativeButton("否", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        finish();
+//                        finish();
                     }
                 }).create();
         alertDialog_DrawOverlay.show();
@@ -166,7 +171,7 @@ public class SettingActivity extends AppCompatActivity {
                 .setNegativeButton("否", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        finish();
+//                        finish();
                     }
                 }).create();
         alertDialog_AccessibilityService.show();
@@ -191,7 +196,7 @@ public class SettingActivity extends AppCompatActivity {
                 .setNegativeButton("否", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        finish();
+//                        finish();
                     }
                 }).create();
         alertDialog_UsageAccess.show();
